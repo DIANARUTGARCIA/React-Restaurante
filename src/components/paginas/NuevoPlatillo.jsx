@@ -1,14 +1,30 @@
-import { Formik, useFormik } from 'formik'
+import React, { useContext, useState } from 'react'
+import { useFormik } from 'formik'
 import * as Yup from 'yup'
+import { FirebaseContext } from '../../firebase'
+import { useNavigate } from 'react-router-dom'
+
 
 const NuevoPlatillo = () => {
+  // state para las imagenes
+  const [subiendo, guardarSubiendo] = useState(false)
+  const [progreso, guardarProgreso] = useState(0)
+  const [urlimagen, guardarUrlimagen] = useState('')
+
+  // Context con las operaciones de firebase
+  const { firebase } = useContext(FirebaseContext)
+
+
+  const navigate = useNavigate()
+
+  // validación y leer los datos del formulario
   const formik = useFormik({
     initialValues: {
       nombre: '',
       precio: '',
       categoria: '',
       imagen: '',
-      description: '',
+      descripcion: '',
     },
     validationSchema: Yup.object({
       nombre: Yup.string()
@@ -18,18 +34,35 @@ const NuevoPlatillo = () => {
         .min(1, 'Debes agregar un número')
         .required('El Precio es obligatorio'),
       categoria: Yup.string().required('La categoría es obligatoria'),
-      description: Yup.string()
+      descripcion: Yup.string()
         .min(10, 'La descripción debe ser más larga')
         .required('La descripción es obligatoria'),
     }),
-    onsubmit: (datos) => {
-      console.log(datos)
+    onSubmit:  async  (platillo) => {
+      try {
+        const res = await firebase.insertDocument("productos", { ...platillo });
+         if (res.id) {
+          console.log("insercción de cuerpo correcta:", res.id);
+           //Redireccionar
+        navigate('/menu')
+        }
+
+       
+
+       
+
+      } catch (error) {
+        console.log(error)
+      }
     },
   })
+
+
 
   return (
     <>
       <h1 className="text-3xl font-light mb-4">Agregar Platillo</h1>
+
       <div className="flex justify-center mt-10">
         <div className="w-full max-w-3xl">
           <form onSubmit={formik.handleSubmit}>
@@ -47,7 +80,7 @@ const NuevoPlatillo = () => {
                 placeholder="Nombre Platillo"
                 value={formik.values.nombre}
                 onChange={formik.handleChange}
-                onBlur={Formik.handleBlur}
+                onBlur={formik.handleBlur}
               />
             </div>
             {formik.touched.nombre && formik.errors.nombre ? (
@@ -72,12 +105,13 @@ const NuevoPlatillo = () => {
                 id="precio"
                 type="number"
                 placeholder="$20"
-                min={0}
+                min="0"
                 value={formik.values.precio}
                 onChange={formik.handleChange}
-                onBlur={Formik.handleBlur}
+                onBlur={formik.handleBlur}
               />
             </div>
+
             {formik.touched.precio && formik.errors.precio ? (
               <div
                 className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-5"
@@ -93,23 +127,26 @@ const NuevoPlatillo = () => {
                 className="block text-gray-700 text-sm font-bold mb-2"
                 htmlFor="nombre"
               >
-                Categoria
+                Categoría
               </label>
               <select
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="precio"
                 name="categoria"
                 value={formik.values.categoria}
                 onChange={formik.handleChange}
-                onBlur={Formik.handleBlur}
+                onBlur={formik.handleBlur}
               >
-                <option value="">--Seleccione--</option>
+                <option value="">-- Seleccione --</option>
                 <option value="desayuno">Desayuno</option>
-                <option value="comida">Comida</option>
+                <option value="Almuerzo">Almuerzo</option>
                 <option value="cena">Cena</option>
-                <option value="Bebidas">Bebidas</option>
-                <option value="ensalada">Ensaladas</option>
+                <option value="bebida">Bebidas</option>
+                <option value="postre">Postre</option>
+                <option value="ensalada">Ensalada</option>
               </select>
             </div>
+
             {formik.touched.categoria && formik.errors.categoria ? (
               <div
                 className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-5"
@@ -123,51 +160,53 @@ const NuevoPlatillo = () => {
             <div className="mb-4">
               <label
                 className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="precio"
+                htmlFor="imagen"
               >
                 Imagen
               </label>
-              <input
+                <input
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="precio"
                 type="file"
                 value={formik.values.imagen}
                 onChange={formik.handleChange}
               />
+              
             </div>
+
+            
 
             <div className="mb-4">
               <label
                 className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="nombre"
+                htmlFor="descripcion"
               >
                 Descripción
               </label>
               <textarea
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-40"
-                id="nombre"
+                id="descripcion"
                 placeholder="Descripción del Platillo"
-                value={formik.values.description}
+                value={formik.values.descripcion}
                 onChange={formik.handleChange}
-                onBlur={Formik.handleBlur}
-              >
-                {' '}
-              </textarea>
+                onBlur={formik.handleBlur}
+              ></textarea>
             </div>
-            {formik.touched.description && formik.errors.description ? (
+
+            {formik.touched.descripcion && formik.errors.descripcion ? (
               <div
                 className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-5"
                 role="alert"
               >
                 <p className="font-bold">Hubo un error:</p>
-                <p>{formik.errors.description} </p>
+                <p>{formik.errors.descripcion} </p>
               </div>
             ) : null}
 
             <input
               type="submit"
               className="bg-gray-800 hover:bg-gray-900 w-full mt-5 p-2 text-white uppercase font-bold"
-              value={'Agregar Platillo'}
+              value="Agregar Platillo"
             />
           </form>
         </div>
