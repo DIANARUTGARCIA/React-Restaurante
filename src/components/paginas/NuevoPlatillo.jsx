@@ -3,7 +3,7 @@ import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { FirebaseContext } from '../../firebase'
 import { useNavigate } from 'react-router-dom'
-
+import FileUploader from 'react-firebase-file-uploader'
 
 const NuevoPlatillo = () => {
   // state para las imagenes
@@ -13,7 +13,6 @@ const NuevoPlatillo = () => {
 
   // Context con las operaciones de firebase
   const { firebase } = useContext(FirebaseContext)
-
 
   const navigate = useNavigate()
 
@@ -38,26 +37,46 @@ const NuevoPlatillo = () => {
         .min(10, 'La descripción debe ser más larga')
         .required('La descripción es obligatoria'),
     }),
-    onSubmit:  async  (platillo) => {
+    onSubmit: async (platillo) => {
       try {
-        const res = await firebase.insertDocument("productos", { ...platillo });
-         if (res.id) {
-          console.log("insercción de cuerpo correcta:", res.id);
-           //Redireccionar
-        navigate('/menu')
+        platillo.imagen = urlimagen
+        const res = await firebase.insertDocument('productos', { ...platillo })
+        if (res.id) {
+          console.log('insercción de cuerpo correcta:', res.id)
+          //Redireccionar
+          navigate('/menu')
         }
-
-       
-
-       
-
       } catch (error) {
         console.log(error)
       }
     },
   })
+  //Infomción para las imagenes
+  const handleUploadStart = () => {
+    guardarProgreso(0)
+    guardarSubiendo(true)
+  }
+  const handleUploadError = (error) => {
+    guardarSubiendo(false)
+    console.log(error)
+  }
+  const handleUploadSuccess = async (nombre) => {
+    guardarProgreso(100)
+    guardarSubiendo(false)
 
+    const url = await firebase.storage
+      .ref('productos')
+      .child(nombre)
+      .getDownloadURL()
 
+    console.log(url)
+    guardarUrlimagen(url)
+  }
+  const handleProgress = (progreso) => {
+    guardarProgreso(progreso)
+
+    console.log(progreso)
+  }
 
   return (
     <>
@@ -164,17 +183,33 @@ const NuevoPlatillo = () => {
               >
                 Imagen
               </label>
-                <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="precio"
-                type="file"
-                value={formik.values.imagen}
-                onChange={formik.handleChange}
+              <FileUploader
+                accept="image/*"
+                id="imagen"
+                randomizeFilename
+                storageRef={firebase.storage.ref('productos')}
+                onUploadStart={handleUploadStart}
+                onUploadError={handleUploadError}
+                onUploadSuccess={handleUploadSuccess}
+                onProgress={handleProgress}
               />
-              
             </div>
+            {subiendo && (
+              <div className="h-12 relative w-full border">
+                <div
+                  className="bg-green-500 absolute left-0 top-0 text-white px-2 text-sm h-12 flex items-center"
+                  style={{ width: `${progreso}%` }}
+                >
+                  {progreso} %
+                </div>
+              </div>
+            )}
 
-            
+            {urlimagen && (
+              <p className="bg-green-500 text-white p-3 text-center my-5">
+                La imagen se subió correctamente
+              </p>
+            )}
 
             <div className="mb-4">
               <label

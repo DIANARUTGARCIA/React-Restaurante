@@ -1,6 +1,7 @@
 import app from 'firebase/compat/app'
 import 'firebase/compat/auth'
 import 'firebase/compat/firestore'
+import 'firebase/compat/storage'
 
 // importaciones necesarias para insertar
 import { getFirestore, collection, addDoc } from 'firebase/firestore'
@@ -12,10 +13,9 @@ class Firebase {
     if (!app.apps.length) {
       app.initializeApp(firebaseConfig)
     }
-
     // inicialización de firestore
     this.db = getFirestore()
-
+    this.storage = app.storage()
     // añadir un nuevo documento
     this.insertDocument = async function insertDocument(
       coleccion = '',
@@ -29,7 +29,5 @@ class Firebase {
   }
 }
 
-const firebase = new Firebase();
-export default firebase;
-
-
+const firebase = new Firebase()
+export default firebase
