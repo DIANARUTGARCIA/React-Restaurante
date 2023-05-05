@@ -39,13 +39,12 @@ const NuevoPlatillo = () => {
     }),
     onSubmit: async (platillo) => {
       try {
+        platillo.existencia = true
         platillo.imagen = urlimagen
-        const res = await firebase.insertDocument('productos', { ...platillo })
-        if (res.id) {
-          console.log('insercción de cuerpo correcta:', res.id)
-          //Redireccionar
-          navigate('/menu')
-        }
+
+        firebase.db.collection('productos').add(platillo)
+
+        navigate('/menu')
       } catch (error) {
         console.log(error)
       }
