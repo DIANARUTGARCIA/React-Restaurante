@@ -1,4 +1,3 @@
-import React from 'react'
 
 const Platillo = ({ platillo }) => {
   const { nombre, imagen } = platillo
@@ -7,7 +6,7 @@ const Platillo = ({ platillo }) => {
       <div className="p-5 shadow-md bg-white">
         <div className="lg:flex">
           <div className="lg:w-5/12 xl:w-3/12">
-            <img />
+            <img src={imagen} alt="Imagen Platillo" />
           </div>
           <div className="lg:w-7/12 xl:w-9/12">2</div>
         </div>
